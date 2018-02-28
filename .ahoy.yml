@@ -1,0 +1,41 @@
+ahoyapi: v2
+commands:
+  up:
+    cmd: |
+      nvidia-docker run --rm -it \
+        -p 8888:8888 \
+        -p 6006:6006 \
+        -p 4567:4567 \
+        --name tf-gpu \
+        -v `pwd`:/notebooks \
+        tensorflow/tensorflow:1.1.0-gpu-py3 
+
+  cmd:
+    cmd: docker exec -it tf-gpu "$@"
+
+  bash:
+    cmd: ahoy cmd bash
+
+  deps:
+    cmd: |
+      ahoy cmd pip install -r requirements.txt
+      ahoy cmd cp protocols /etc/protocols
+
+  train:
+    usage: Run the training
+    cmd: ahoy cmd python train.py
+
+  train2:
+    usage: Run the training
+    cmd: ahoy cmd python model.py
+
+  drive:
+    usage: Run the python script for the driving simulator
+    cmd: ahoy cmd python drive.py ./data/model.h5
+
+  drive2:
+    usage: Run the python script for the driving simulator
+    cmd: ahoy cmd python drive.py model.h5
+  sim:
+    usage: Start the simulator
+    cmd: ~/CarND-Simulator/linux_sim.x86_64 &
