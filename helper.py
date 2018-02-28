@@ -21,6 +21,14 @@ class DLProgress(tqdm):
         self.last_block = block_num
 
 
+def bc_img(img, s = 1.0, m = 0.0):
+    img = img.astype(np.int)
+    img = img * s + m
+    img[img > 255] = 255
+    img[img < 0] = 0
+    img = img.astype(np.uint8)
+    return img
+
 def maybe_download_pretrained_vgg(data_dir):
     """
     Download and extract pretrained vgg model if it doesn't exist
@@ -85,6 +93,8 @@ def gen_batch_function(data_folder, image_shape):
                 gt_image_file = label_paths[os.path.basename(image_file)]
 
                 image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
+                image = bc_img(image)
+
                 gt_image = scipy.misc.imresize(scipy.misc.imread(gt_image_file), image_shape)
 
                 gt_bg = np.all(gt_image == background_color, axis=2)
