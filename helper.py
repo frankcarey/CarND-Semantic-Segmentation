@@ -79,31 +79,52 @@ def gen_batch_function(data_folder, image_shape):
         :param batch_size: Batch Size
         :return: Batches of training data
         """
-        image_paths = glob(os.path.join(data_folder, 'image_2', '*.png'))
-        label_paths = {
-            re.sub(r'_(lane|road)_', '_', os.path.basename(path)): path
-            for path in glob(os.path.join(data_folder, 'gt_image_2', '*_road_*.png'))}
-        background_color = np.array([255, 0, 0])
-
+        image_paths = glob(os.path.join(data_folder, 'images','people_val2014', '*.jpg'))
+        label_paths = {}
+        for im_path in image_paths:
+            label_paths[im_path] = os.path.join(data_folder, 'images', 'mask_val2014', os.path.basename(im_path))
+        background_color = np.array([68, 1, 84])
+        
         random.shuffle(image_paths)
         for batch_i in range(0, len(image_paths), batch_size):
             images = []
             gt_images = []
-            for image_file in image_paths[batch_i:batch_i+batch_size]:
-                gt_image_file = label_paths[os.path.basename(image_file)]
+            for i, image_file in enumerate(image_paths[batch_i:batch_i+batch_size]):
 
+                gt_image_file = label_paths[image_file]
                 image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
-                image = bc_img(image)
+                
+                #image = bc_img(image)
 
                 gt_image = scipy.misc.imresize(scipy.misc.imread(gt_image_file), image_shape)
+                gt_image = gt_image[:,:,:-1]
+                #print(gt_image.shape)
+                #exit(0)
 
                 gt_bg = np.all(gt_image == background_color, axis=2)
                 gt_bg = gt_bg.reshape(*gt_bg.shape, 1)
                 gt_image = np.concatenate((gt_bg, np.invert(gt_bg)), axis=2)
 
+                #gt_bg = np.all(gt_image == background_color, axis=2)
+                #gt_image = gt_image[:,:,1]
+                #gt_image = gt_image.reshape(*gt_image.shape, 1)
+                #print(gt_image.shape)
+                #exit(1)
+                #gt_bg = gt_bg.reshape(*gt_bg.shape, 1)
+                #gt_image = np.concatenate((np.invert(gt_image), gt_image), axis=2)
+                #gt_image = gt_image.astype('float32')
+                #if gt_image.shape[0
+                #print(gt_image_file, gt_image.shape)
+                if len(image.shape) == 2:
+                    image = np.dstack([image.astype(np.uint8)] * 3)
+                #print(image_file, image.shape)
+                #exit(0)
+                
+
                 images.append(image)
                 gt_images.append(gt_image)
-
+            if batch_i > 500:
+                return
             yield np.array(images), np.array(gt_images)
     return get_batches_fn
 
@@ -119,8 +140,12 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
     :param image_shape: Tuple - Shape of image
     :return: Output for for each test image
     """
-    for image_file in glob(os.path.join(data_folder, 'image_2', '*.png')):
+    image_paths = glob(os.path.join(data_folder, '*.jpg'))
+    random.shuffle(image_paths)
+    for image_file in image_paths[0:50]:
         image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
+        if len(image.shape) == 2:
+            image = np.dstack([image.astype(np.uint8)] * 3)
 
         im_softmax = sess.run(
             [tf.nn.softmax(logits)],
@@ -145,6 +170,6 @@ def save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_p
     # Run NN on test images and save them to HD
     print('Training Finished. Saving test images to: {}'.format(output_dir))
     image_outputs = gen_test_output(
-        sess, logits, keep_prob, input_image, os.path.join(data_dir, 'data_road/testing'), image_shape)
+        sess, logits, keep_prob, input_image, '/aml-common/data/coco/images/people_testing/', image_shape)
     for name, image in image_outputs:
         scipy.misc.imsave(os.path.join(output_dir, name), image)

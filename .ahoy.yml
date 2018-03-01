@@ -8,6 +8,7 @@ commands:
         -p 4567:4567 \
         --name tf-gpu \
         -v `pwd`:/notebooks \
+        -v /aml-common:/aml-common \
         tensorflow/tensorflow:1.1.0-gpu-py3 
 
   cmd:

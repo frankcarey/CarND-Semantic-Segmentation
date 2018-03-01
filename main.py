@@ -44,7 +44,7 @@ def load_vgg(sess, vgg_path):
 
     return input_image, keep_prob, vgg_layer3_out, vgg_layer4_out, vgg_layer7_out
 
-tests.test_load_vgg(load_vgg, tf)
+#tests.test_load_vgg(load_vgg, tf)
 
 
 def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
@@ -98,7 +98,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                            kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3),
                                            name='fcn_final')
     return fcn_final
-tests.test_layers(layers)
+#tests.test_layers(layers)
 
 
 def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
@@ -122,7 +122,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     return logits, train_op, cross_entropy_loss
 
     return None, None, None
-tests.test_optimize(optimize)
+#tests.test_optimize(optimize)
 
 
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
@@ -153,15 +153,15 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                                           learning_rate: 0.0009})
             print("Loss: = {:.3f}".format(loss))
         print()
-tests.test_train_nn(train_nn)
+#tests.test_train_nn(train_nn)
 
 
 def run():
     num_classes = 2
-    image_shape = (160, 576)
-    data_dir = './data'
+    image_shape = (512, 512)
+    data_dir = '/aml-common/data/coco'
     runs_dir = './runs'
-    tests.test_for_kitti_dataset(data_dir)
+    #tests.test_for_kitti_dataset(data_dir)
 
     # Download pretrained vgg model
     print("downloading model if necessary..")
@@ -175,13 +175,13 @@ def run():
         # Path to vgg model
         vgg_path = os.path.join(data_dir, 'vgg')
         # Create function to get batches
-        get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'data_road/training'), image_shape)
+        get_batches_fn = helper.gen_batch_function(os.path.join(data_dir), image_shape)
 
         # OPTIONAL: Augment Images for better results
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
         # TODO: Build NN using load_vgg, layers, and optimize function
-        epochs = 10
+        epochs = 1
         batch_size = 16
 
         # TF placeholders
