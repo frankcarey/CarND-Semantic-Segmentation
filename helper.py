@@ -86,10 +86,22 @@ def gen_batch_function(data_folder, image_shape):
         background_color = np.array([68, 1, 84])
         
         random.shuffle(image_paths)
+        print("{} images in batch".format(len(image_paths)))
         for batch_i in range(0, len(image_paths), batch_size):
+            print("batch: {:.3f}%".format(batch_i/len(image_paths)))
+            # For overfitting a single image or set of images.
+            #if 'images' in locals():
+            #    print("reuse", batch_i)
+            #    if batch_i > 5000:
+            #        return
+            #    yield np.array(images), np.array(gt_images)
+            #    continue
             images = []
             gt_images = []
-            for i, image_file in enumerate(image_paths[batch_i:batch_i+batch_size]):
+            for image_file in image_paths[batch_i:batch_i+batch_size]:
+                
+                # For overfitting on one image.
+                #image_file = os.path.join(data_folder, 'images','people_val2014', 'COCO_val2014_000000065655.jpg')
 
                 gt_image_file = label_paths[image_file]
                 image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
@@ -120,11 +132,14 @@ def gen_batch_function(data_folder, image_shape):
                 #print(image_file, image.shape)
                 #exit(0)
                 
+                #print(image_file)
+                
 
                 images.append(image)
+                
                 gt_images.append(gt_image)
-            if batch_i > 500:
-                return
+            #if batch_i > 500:
+            #    return
             yield np.array(images), np.array(gt_images)
     return get_batches_fn
 
@@ -142,7 +157,8 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
     """
     image_paths = glob(os.path.join(data_folder, '*.jpg'))
     random.shuffle(image_paths)
-    for image_file in image_paths[0:50]:
+    for image_file in image_paths[0:5]:
+        #image_file = os.path.join(data_folder, 'COCO_val2014_000000065655.jpg')
         image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
         if len(image.shape) == 2:
             image = np.dstack([image.astype(np.uint8)] * 3)
